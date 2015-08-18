@@ -8,3 +8,7 @@ char ch;                            ///now, hold word
 int token;                          ///word code
 int line_num;
 FILE * fin;                         ///file
+
+/***************************************************/
+
+

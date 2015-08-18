@@ -1,10 +1,21 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "include/TokenCode.h"
+#include "include/DefineFunction.h"
+#include "include/DynString.h"
+#include "include/DynArray.h"
+#include "include/TkWord.h"
+#include "include/ColorToken.h"
+
 void init(){
     line_num = 1;
     init_lex();
 }
 
 void cleanup(){
-    int i;
+
     printf("\ntktable.count = %d\n",tktable.count);
     for(int i = TK_IDENT;i < tktable.count; i++)
         free(tktable.data[i]);

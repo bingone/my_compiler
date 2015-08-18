@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "include/TokenCode.h"
+#include "include/DefineFunction.h"
 #include "include/DynString.h"
 #include "include/DynArray.h"
 #include "include/TkWord.h"
+#include "include/ColorToken.h"
+
 /** read char from file */
 void getch(){
     ch = getc(fin);
@@ -215,7 +219,7 @@ void get_token(){
         case 'o':case 'p':case 'q':case 'r':case 's':case 't':
         case 'u':case 'v':case 'w':case 'x':case 'y':case 'z':
         case 'A':case 'B':case 'C':case 'D':case 'E':case 'F':case 'G':
-        case 'H':case 'I':case 'J':case 'k':case 'L':case 'M':case 'N':
+        case 'H':case 'I':case 'J':case 'K':case 'L':case 'M':case 'N':
         case 'O':case 'P':case 'Q':case 'R':case 'S':case 'T':
         case 'U':case 'V':case 'W':case 'X':case 'Y':case 'Z':
         case '_':

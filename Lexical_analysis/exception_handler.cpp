@@ -1,4 +1,15 @@
-#include "Exception.h"
+#include "include/Exception.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <STDARG.H>
+
+#include "include/TokenCode.h"
+#include "include/DefineFunction.h"
+#include "include/DynString.h"
+#include "include/DynArray.h"
+#include "include/TkWord.h"
+#include "include/ColorToken.h"
 /**
 exception hadler
 stage: compiler | link
@@ -12,9 +23,9 @@ void handle_exception(int stage,int level,char * fmt,va_list ap){
     vsprintf(buf,fmt,ap);
     if(STAGE_COMPILE == stage){
         if(LEVEL_WARNING == level)
-            printf("%s(in %d lines):compile warning:%s!\n",filename,line_num,buf);
+            printf("%s(in %d lines):compile warning:%s!\n",fin,line_num,buf);
         else{
-            printf("%s(in %d lines):compile error:%s!\n",filename,line_num,buf);
+            printf("%s(in %d lines):compile error:%s!\n",fin,line_num,buf);
             exit(-1);
         }
     }else{

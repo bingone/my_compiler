@@ -1,8 +1,16 @@
-enum e_LexState{
-    LEX_NORMAL,
-    LEX_SEP,
-};
 
+
+#include "windows.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "include/TokenCode.h"
+#include "include/DefineFunction.h"
+#include "include/DynString.h"
+#include "include/DynArray.h"
+#include "include/TkWord.h"
+#include "include/ColorToken.h"
 void color_token(int lex_state){
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     char *p;
@@ -12,7 +20,7 @@ void color_token(int lex_state){
                 SetConsoleTextAttribute(h,FOREGROUND_INTENSITY);
             else if(token >= KW_CHAR)
                 SetConsoleTextAttribute(h,FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-            else if(token >= KW_CINT)
+            else if(token >= TK_CINT)
                 SetConsoleTextAttribute(h,FOREGROUND_GREEN | FOREGROUND_RED);
             else
                 SetConsoleTextAttribute(h,FOREGROUND_RED | FOREGROUND_INTENSITY);

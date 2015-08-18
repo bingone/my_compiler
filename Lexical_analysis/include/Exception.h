@@ -8,4 +8,4 @@ enum e_ErrorLevel{
 enum e_WorkStage{
     STAGE_COMPILE,
     STAGE_LINK,
-}
+};

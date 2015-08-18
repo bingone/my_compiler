@@ -31,7 +31,7 @@ enum e_TokenCode{
     TK_CCHAR,   /// c_char
     TK_CSTR,    /// c_str
 
-    /**¹Ø¼ü×Ö*/
+    /**key word */
     KW_CHAR,    /// char
     KW_SHORT,   /// short
     KW_INT,     /// int
@@ -48,6 +48,6 @@ enum e_TokenCode{
     KW_CODEL,   /// __codel
     KW_STDCALL, /// __stdall
 
-    /**±êÊ¶·û*/
-    TK_INENT,
+    /**identify*/
+    TK_IDENT,
 };
