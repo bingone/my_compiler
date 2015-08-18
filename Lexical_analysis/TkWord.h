@@ -11,6 +11,13 @@ typedef struct TkWord{
 TkWord * tk_hashtable[MAXKEY];      ///hashtable
 DynArray tktable;                   ///wordlist
 
+void * mallocz(int size){
+    void *ptr;
+    ptr = malloc(size);
+    if(!ptr && size) error("malloc assign failed!");
+    memset(ptr,0,size);
+    return ptr;
+}
 
 int elf_hash(char *key){
     int h=0,g;
@@ -66,10 +73,3 @@ TkWord * tkword_insert(char *p){
     return tp;
 }
 
-void * mallocz(int size){
-    void *ptr;
-    ptr = malloc(size);
-    if(!ptr && size) error("malloc assign failed!");
-    memset(ptr,0,size);
-    return ptr;
-}
