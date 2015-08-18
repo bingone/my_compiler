@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "TokenCode.h"
-#include "DynString.h"
-#include "DynArray.h"
-#include "TkWord.h"
+#include "include/TokenCode.h"
+#include "include/DynString.h"
+#include "include/DynArray.h"
+#include "include/TkWord.h"
 void init_lex(){
     TkWord * tp;
     static TkWord keywords[] = {
