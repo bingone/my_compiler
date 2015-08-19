@@ -41,7 +41,7 @@ void dynarray_realloc(DynArray *parr,int new_size){
 
 void dynarray_add(DynArray *parr,void *data){   ///apend ch
     int count = parr->count + 1;
-    if(count > parr->capacity)
+    if(count * sizeof(void *) > parr->capacity)
         dynarray_realloc(parr,count * sizeof(void *));
     (parr->data)[count-1] = data;
     parr->count = count;
