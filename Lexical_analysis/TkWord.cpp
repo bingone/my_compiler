@@ -59,7 +59,7 @@ TkWord * tkword_insert(char *p){
     tp->next = tk_hashtable[keyno];
     tk_hashtable[keyno] = tp;
     dynarray_add(&tktable,tp);
-    tp->tkcode = tktable.count + 1;
+    tp->tkcode = tktable.count - 1; /// it is a hole
     s=(char *)tp + sizeof(TkWord);
     tp->spelling = s;
     for(end = p + length;p < end;)

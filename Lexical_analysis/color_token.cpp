@@ -25,7 +25,7 @@ void color_token(int lex_state){
             else
                 SetConsoleTextAttribute(h,FOREGROUND_RED | FOREGROUND_INTENSITY);
             p = get_tkstr(token);
-            printf("%s\n",p);
+            printf("%s",p);
             break;
 
         case LEX_SEP:

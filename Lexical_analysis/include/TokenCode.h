@@ -43,6 +43,7 @@ enum e_TokenCode{
     KW_CONTINUE,/// continue
     KW_BREAK,   /// break
     KW_RETURN,  /// return
+    KW_SIZEOF,  /// sizeof
 
     KW_ALIGN,   /// __align
     KW_CODEL,   /// __codel
