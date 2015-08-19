@@ -1,3 +1,11 @@
+
+
+#include <stdio.h>
+#include "include/definemaro.h"
+#include "include/DynString.h"
+#include "include/DynArray.h"
+#include "include/TkWord.h"
+
 #define MAXKEY 1024                 ///hashtable size
 TkWord * tk_hashtable[MAXKEY];      ///hashtable
 DynArray tktable;                   ///wordlist

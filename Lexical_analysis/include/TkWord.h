@@ -6,79 +6,19 @@ typedef struct TkWord{
     struct Symbol * sym_identifier; /// 指向单词表示的标识符
 
 }TkWord;
-/** global variable */
-#define MAXKEY 1024                 ///hashtable size
-TkWord * tk_hashtable[MAXKEY];      ///hashtable
-DynArray tktable;                   ///wordlist
-DynString tkstr;                    ///word string
-DynString sourcestr;                ///word source string
-int tkvalue;                        ///word in int value
-char ch;                            ///now, hold word
-int token;                          ///word code
-int line_num;
-FILE * fin;                         ///file
+
+void * mallocz(int size);
+int elf_hash(char *key);
+TkWord * tkword_direct_insert(TkWord *tp);
+TkWord * tkword_find(char * p,int keyno);
+TkWord * tkword_insert(char *p);
 
 
+extern FILE * fin;
+extern int line_num;
+extern DynArray tktable;
+extern DynString sourcestr;
+extern int token;
+extern TkWord * tk_hashtable[MAXKEY];
 
-void * mallocz(int size){
-    void *ptr;
-    ptr = malloc(size);
-    if(!ptr && size) error("malloc assign failed!");
-    memset(ptr,0,size);
-    return ptr;
-}
-
-int elf_hash(char *key){
-    int h=0,g;
-    while(*key){
-        h = (h<<4) + *key++;
-        g = h & 0xf0000000;
-        if(g) h ^= g >> 24;
-        h &= ~g;
-    }
-    return h%MAXKEY;
-}
-
-/**operator */
-TkWord * tkword_direct_insert(TkWord *tp){
-    int keyno;
-    dynarray_add(&tktable,tp);
-    keyno = elf_hash(tp->spelling);
-    tp->next = tk_hashtable[keyno];
-    tk_hashtable[keyno] = tp;
-    return tp;
-}
-///单词表中找单词，keyno要查单词的hash值 p 要查的单词
-TkWord * tkword_find(char * p,int keyno){  ///hash and Sequential search
-    TkWord * tp1;
-    for(tp1 = tk_hashtable[keyno];tp1;tp1 = tp1->next){
-        if(!strcmp(p,tp1->spelling)){
-            return tp1;
-        }
-    }
-    return NULL;
-}
-
-TkWord * tkword_insert(char *p){
-    TkWord * tp;
-    int keyno;
-    char * s;
-    char * end;
-    int length;
-    keyno = elf_hash(p);
-    tp = tkword_find(p,keyno);
-    if(tp != NULL) return tp;
-    length = strlen(p);
-    tp = (TkWord *) mallocz(sizeof(TkWord) + length + 1);
-    tp->next = tk_hashtable[keyno];
-    tk_hashtable[keyno] = tp;
-    dynarray_add(&tktable,tp);
-    tp->tkcode = tktable.count + 1;
-    s=(char *)tp + sizeof(TkWord);
-    tp->spelling = s;
-    for(end = p + length;p < end;)
-        *s++ = *p++;
-    *s = '\0';
-    return tp;
-}
 

@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "include/definemaro.h"
 #include "include/TokenCode.h"
-#include "include/DefineFunction.h"
 #include "include/DynString.h"
 #include "include/DynArray.h"
 #include "include/TkWord.h"
-#include "include/ColorToken.h"
+#include "include/get_token.h"
 
 /** read char from file */
 void getch(){

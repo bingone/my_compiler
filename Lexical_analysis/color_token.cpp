@@ -10,7 +10,7 @@
 #include "include/DynString.h"
 #include "include/DynArray.h"
 #include "include/TkWord.h"
-#include "include/ColorToken.h"
+#include "include/color_token.h"
 void color_token(int lex_state){
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     char *p;

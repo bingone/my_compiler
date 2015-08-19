@@ -1,15 +1,16 @@
-#include "include/Exception.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <STDARG.H>
 
-#include "include/TokenCode.h"
-#include "include/DefineFunction.h"
+#include "include/definemaro.h"
 #include "include/DynString.h"
 #include "include/DynArray.h"
 #include "include/TkWord.h"
-#include "include/ColorToken.h"
+#include "include/TokenCode.h"
+#include "include/exception_handler.h"
+
 /**
 exception hadler
 stage: compiler | link
