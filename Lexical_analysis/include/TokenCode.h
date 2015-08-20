@@ -46,7 +46,7 @@ enum e_TokenCode{
     KW_SIZEOF,  /// sizeof
 
     KW_ALIGN,   /// __align
-    KW_CODEL,   /// __codel
+    KW_CDECL,   /// __cdecl
     KW_STDCALL, /// __stdall
 
     /**identify*/

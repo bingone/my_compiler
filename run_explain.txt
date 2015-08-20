@@ -1,0 +1,25 @@
+%
+
+设定运行环境，这个文件可以放到你想生成文件的目录，这样源码，编译器，生成文件分开
+
+%
+
+
+::设定编译环境
+set CL_HOME=C:\Users\shaoyan.xsy\Desktop\study\use_tool\mycl
+::设定源码位置
+set YOUR_FILE=C:\Users\shaoyan.xsy\Desktop\study\use_tool\mycl\my_compiler\Lexical_analysis
+echo off
+cls
+color 0A
+
+echo 设定环境变量...
+set INCLUDE=%CL_HOME%/include
+set LIB=%CL_HOME%/lib
+set path=%path%;%CL_HOME%;%YOUR_FILE%
+
+cd %~dp0
+cmd
+::下面是lex的示例 执行顺序不要乱变，这个对顺序有要求
+cl /c DynString.cpp DynArray.cpp GlobalVariable.cpp exception_handler.cpp TkWord.cpp get_token.cpp color_token.cpp init_lex.cpp main.cpp
+link /out:_main.exe DynString.obj DynArray.obj GlobalVariable.obj exception_handler.obj TkWord.obj get_token.obj color_token.obj init_lex.obj main.obj
