@@ -57,7 +57,7 @@ void init_lex(){
         {KW_SIZEOF,     NULL,   "sizeof",       NULL,   NULL},
 
         {KW_ALIGN,      NULL,   "__align",      NULL,   NULL},
-        {KW_CODEL,      NULL,   " __codel",     NULL,   NULL},
+        {KW_CDECL,      NULL,   " __cdecl",     NULL,   NULL},
         {KW_STDCALL,    NULL,   " __stdall",    NULL,   NULL},
 
         /**标识符*/
