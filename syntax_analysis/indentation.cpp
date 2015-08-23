@@ -1,4 +1,12 @@
-void syntax_ident(){
+#include <stdio.h>
+#include "include/indentation.h"
+#include "include/syntax_state.h"
+#include "include/TokenCode.h"
+#include "include/color_token.h"
+/**
+通过yntax_state 判断语法状态，按照格式输出
+*/
+void syntax_indent(){
     switch(syntax_state){
         case SNTX_NUL:
             color_token(LEX_NORMAL);
@@ -9,10 +17,10 @@ void syntax_ident(){
             break;
         case SNTX_LF_HT:
         {
-            if(TK_END == token)
+            if(TK_END == token)     /// 遇到 '}' 缩进减少一级
                 syntax_level--;
             printf("\n");
-            rint_tab(syntax_level);
+            print_Tab(syntax_level);
         }
             color_token(LEX_NORMAL);
             break;

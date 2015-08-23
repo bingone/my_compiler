@@ -11,22 +11,18 @@
 #include "include/main.h"
 
 int main(int argc,char **argv){
-    fin = fopen(argv[1],"rb");
+    fin = fopen("C:/Users/shaoyan.xsy/Desktop/a.txt","rb");
     if(!fin){
         printf("File open failed!\n");
         return 0;
     }
     init();
     getch();
-    do{
-        get_token();
-        color_token(LEX_NORMAL);
-    }while(token != TK_EOF);
-    printf("code lines number: %d lines\n",line_num);
-
+    get_token();
+	translation_unit();
     cleanup();
     fclose(fin);
-    printf("%s Lexical_analysis success!\n",argv[1]);
+    printf("%s Syntax_analysis success!\n",argv[1]);
     return 1;
 }
 void init(){

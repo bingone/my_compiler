@@ -1,44 +1,9 @@
-void translation_unit();
-void external_declaration(int l);
-int type_specifier();
-void struct_specifier();
-void struct_declaration_list();
-void struct_declaration();
-void function_calling_convention(int *fc);
-void struct_member_alignment();
-void declarator();
-void direct_declarator();
-void direct_declarator_postfix();
-void parameter_type_list(int func_call);
-void funcbody();
-void initializer();
-
-void statement(int *bsym,int *csym);
-int is_type_specifier(int v);
-void expression_statement();
-void if_statement();
-void for_statement();
-void continue_statement();
-void break_statement();
-void return_statement();
-
-
-void expression();
-void assignment_expression();
-void equality_expression();
-void realtional_expression();
-void additive_expression();
-void multiplicative_expression();
-void unary_expression();
-void sizeof_expression();
-void postfix_expression();
-void primary_expression();
-void argument_expression_list();
-
-
+#include "include/syntax_state.h"
+#include "include/grammer.h"
+#include "include/TokenCode.h"
+#include "include/external_declaration.h"
 /***********************************************************************/
-int syntax_state;    ///语法状态
-int syntax_level;   /// 缩进级别
+
 
 /**
 翻译单元
@@ -47,7 +12,7 @@ int syntax_level;   /// 缩进级别
 */
 void translation_unit(){
     while(token != TK_EOF)
-        external_declaration(SC_GLOBAL);
+        external_declaration(SC_GLOBAL);    /// 函数外部解析状态
 }
 
 /**
@@ -156,7 +121,7 @@ void struct_specifier(){
         syntax_state = SNTX_NUL;
     else
         syntax_state = SNTX_SP;
-    syntax_ident();
+    syntax_indent();
 
     if(v < TK_IDENT)
         expect("struct name");  /// key word can't apply for struct name
@@ -173,14 +138,18 @@ void struct_declaration_list(){
     syntax_state = SNTX_LF_HT;  /// the first structure member doesn't write in the same line with '{'
     syntax_level++;             /// 结构体成员变量声明，缩进增加一级
     get_token();
-    while(token != TK_END)
-        struct_declaration(&maxalign,&offset);
+    while(token != TK_END){
+        struct_declaration(); /// 原书是 struct_declaration(&maxalign,&offset);
+		get_token();
+	}
     skip(TK_END);
+	get_token();
+	skip(TK_SEMICOLON);
     syntax_state = SNTX_LF_HT;
 }
 /**
 结构声明
-<struct)declaration>::=
+<struct_declaration>::=
     <type_specifier><declarator>{<TK_COMMA><declarator>}
     <TK_SEMICOLON>
 */
@@ -266,6 +235,7 @@ void direct_declarator_postfix(){
         }
         skip(TK_CLOSEBR);
         direct_declarator_postfix();
+		get_token();
     }
 }
 /**
@@ -274,7 +244,8 @@ void direct_declarator_postfix(){
 <parameter_type_list>::=<type_specifier>{<declarator>}
     {<TK_COMMA><type_specifier>{<declarator>}}<TK_COMMA><TK_ELLIPSIS>
 */
-void parameter_type_list(int func_call){
+void parameter_type_list(){
+    int func_call;          /// 原书将这个变量当做参数
     get_token();
     while(TK_CLOSEPA != token){
         if(!type_specifier())
@@ -291,6 +262,7 @@ void parameter_type_list(int func_call){
     }
     syntax_state = SNTX_DELAY;
     skip(TK_CLOSEPA);
+	get_token();
     if(TK_BEGIN == token)   /// define function
         syntax_state = SNTX_LF_HT;
     else
@@ -326,25 +298,25 @@ void initializer(){
             <expression_statement>
 
 */
-void statement(int *bsym,int *csym){
+void statement(){
     switch(token){
         case TK_BEGIN:
-            compound_statement(bsym,csym);
+            compound_statement();
             break;
         case KW_IF:
-            if_statement(bsym,csym);
+            if_statement();
             break;
         case KW_RETURN:
             return_statement();
             break;
         case KW_BREAK:
-            break_statement(bsym);
+            break_statement();
             break;
         case KW_CONTINUE:
-            continue_statement(bsym);
+            continue_statement();
             break;
         case KW_FOR:
-            for_statement(bsym,csym);
+            for_statement();
             break;
         default:
             expression_statement();
@@ -360,8 +332,10 @@ void compound_statement(){
     syntax_state = SNTX_LF_HT;
     syntax_level++;     ///复合语句，缩进
     get_token();
-    while(is_type_specifier(token))
+    while(is_type_specifier(token)){
         external_declaration(SC_LOCAL);
+		get_token();
+	}
     while(TK_END != token)
         statement();
     syntax_state = SNTX_LF_HT;
@@ -421,7 +395,7 @@ void for_statement(){
             expression();
         skip(TK_SEMICOLON);
         if(TK_CLOSEPA != token)
-            epxression();
+            expression();
         syntax_state = SNTX_LF_HT;
         skip(TK_CLOSEPA);
         statement();
@@ -504,10 +478,10 @@ void equality_expression(){
                                                |<TK_GEQ><additive_expression>
                                                 }
 */
-void realtional_expression(){
+void relational_expression(){
     additive_expression();
-    while((TK_LF == token || TK_LEQ == token)
-           TK_GT == token || TK_GEQ == toekn){
+    while((TK_LT == token || TK_LEQ == token) ||
+           TK_GT == token || TK_GEQ == token){
         get_token();
         additive_expression();
     }
