@@ -322,6 +322,7 @@ void statement(){
             expression_statement();
             break;
     }
+	get_token();	///
 }
 /**
 复合语句
@@ -330,14 +331,15 @@ void statement(){
 */
 void compound_statement(){
     syntax_state = SNTX_LF_HT;
-    syntax_level++;     ///复合语句，缩进
-    get_token();
+    syntax_level++;     ///复合语句，缩�
+	get_token();
     while(is_type_specifier(token)){
         external_declaration(SC_LOCAL);
 		get_token();
 	}
     while(TK_END != token)
-        statement();
+		statement();
+	
     syntax_state = SNTX_LF_HT;
     get_token();
 }
@@ -374,6 +376,7 @@ void if_statement(){
     expression();
     syntax_state = SNTX_LF_HT;
     skip(TK_CLOSEPA);
+	get_token();				///               add
     statement();
     if(KW_ELSE == token){
         syntax_state = SNTX_LF_HT;
@@ -388,16 +391,20 @@ for
 void for_statement(){
         get_token();
         skip(TK_OPENPA);
+		get_token();
         if(TK_SEMICOLON != token)
             expression();
         skip(TK_SEMICOLON);
+		get_token();
         if(TK_SEMICOLON != token)
             expression();
         skip(TK_SEMICOLON);
+		get_token();
         if(TK_CLOSEPA != token)
             expression();
         syntax_state = SNTX_LF_HT;
         skip(TK_CLOSEPA);
+		get_token();
         statement();
 }
 /**
@@ -566,6 +573,7 @@ void postfix_expression(){
             get_token();
             expression();
             skip(TK_CLOSEBR);
+			get_token();
         }else if(TK_OPENPA == token){
             argument_expression_list();
         }else
@@ -614,8 +622,10 @@ void argument_expression_list(){
             assignment_expression();
             if(TK_CLOSEPA == token)
                 break;
-                skip(TK_COMMA);
+            skip(TK_COMMA);
+			get_token();
         }
     }
     skip(TK_CLOSEPA);
+	get_token();
 }

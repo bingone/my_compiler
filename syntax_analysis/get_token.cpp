@@ -165,27 +165,11 @@ void parse_string(char sep){
             getch();
         }
 
-
-            dynstring_chcat(&tkstr,'\0');
-            dynstring_chcat(&sourcestr,sep);
-            dynstring_chcat(&sourcestr,'\0');
-            getch();
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
+    dynstring_chcat(&tkstr,'\0');
+    dynstring_chcat(&sourcestr,sep);
+    dynstring_chcat(&sourcestr,'\0');
+    getch();
 
 }
 
