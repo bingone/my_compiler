@@ -26,24 +26,54 @@ DO:parse external statement
 storage type:local | global
 */
 void external_declaration(int l){
-    if(!type_specifier())
+	Type btype,type;
+	int v,has_init,addr;
+	Symbol *sym;
+    if(!type_specifier(&btype))
         expect("<Type specifier>");
-    if(token == TK_SEMICOLON){
+    if(token == TK_SEMICOLON && T_STRUCT == btype.t){
         get_token();
         return;
     }
     while(1){
-        declarator();
+		type = btype;
+        declarator(&type,&v,NULL);
         if(token == TK_BEGIN){
             if(l == SC_LOCAL)
                 error("don't support function nesting define");
-            funcbody();
+			if((type.t & T_BTYPE) != T_FUNC)
+				error("<function define>");
+			sym = sym_search(v);
+			if(sym){								/// 函数之前声明过，现在给出函数定义
+				if((sym->type.t & T_BTYPE) !- T_FUNC)
+					error("'%s'redefine",get_tkstr(v));
+				sym->type = type;
+			}else
+				sym = func_sym_push(v,&type);
+			sym->r = SC_SYM|SC_GLOBAL;
+            funcbody(sym);
             break;
         }else {
-            if(token == TK_ASSIGN){
-                get_token();
-                initializer();
-            }
+			if((type.t & T_BTYPE) == T_FUNC){	/// 函数声明
+				if(sym_search(v) == NULL)
+					sym = sym_push(v,&type,SC_GLOBAL|SC_SYM,0);
+			}else{
+				r = 0;
+				if(!(type.t & T_ARRAY))
+					r |= SC_LVAL;
+				r |= l;
+				has_init = (token == TK_ASSIGN);
+				if(has_init){
+					get_token();
+					initializer(&type);
+				}
+				sym = var_sym_put(&type,r,v,addr);
+			}
+				
+            // if(token == TK_ASSIGN){
+                // get_token();
+                // initializer();
+            // }
             if(token == TK_COMMA)
                 get_token();
             else{
