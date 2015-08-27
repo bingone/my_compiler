@@ -96,25 +96,30 @@ void external_declaration(int l){
 parse type specifier
 return: is find type specifier
 */
-int type_specifier(){
-    int type_found = 0;
+int type_specifier(Type *type){
+    int type_found = 0,t = 0;
+	Type type1;
     switch(token){
         case KW_CHAR:
+			t = T_CHAR;
             type_found = 1;
             syntax_state = SNTX_SP;
             get_token();
             break;
         case KW_SHORT:
+			t = T_SHORT;
             type_found = 1;
             syntax_state = SNTX_SP;
             get_token();
             break;
         case KW_VOID:
+			t = T_VOID;
             type_found = 1;
             syntax_state = SNTX_SP;
             get_token();
             break;
         case KW_INT:
+			t = T_INT;
             type_found = 1;
             syntax_state = SNTX_SP;
             get_token();
@@ -123,10 +128,12 @@ int type_specifier(){
             syntax_state = SNTX_SP;
             struct_specifier();
             type_found = 1;
+			t = T_STRUCT;
             break;
         default:
             break;
     }
+	type->t = t;
     return type_found;
 }
 
@@ -139,8 +146,11 @@ int type_specifier(){
 parse struct
 
 */
-void struct_specifier(){
+void struct_specifier(Type *type){
     int v;
+	Symbol * s;
+	Type type1;
+	
     get_token();
     v = token;
     syntax_state = SNTX_DELAY;  /// determing output format until take out the next word
@@ -155,27 +165,48 @@ void struct_specifier(){
 
     if(v < TK_IDENT)
         expect("struct name");  /// key word can't apply for struct name
+	s = struct_search(v);
+	if(!s){
+		type1.t = KW_STRUCT;
+		/// -1赋值给s->c, 表示结构体尚未定义
+		s = sym_push(v|SC_STRUCT,&type1,0,-1);
+		s->r = 0;
+	}
+	type->t = T_STRUCT;
+	type->ref = s;
     if(token == TK_BEGIN)
-        struct_declaration_list();
+        struct_declaration_list(type);
 }
 /**
 结构声明符表
 struct declaration list
 <struct_declaration_list>::=<struct_declaration>{<struct_declaration>}
 */
-void struct_declaration_list(){
+void struct_declaration_list(Type *type){
     int maxalign,offset;
     syntax_state = SNTX_LF_HT;  /// the first structure member doesn't write in the same line with '{'
     syntax_level++;             /// 结构体成员变量声明，缩进增加一级
     get_token();
+	Symbol *s,**ps;
+	s = type->ref;
+	if(s->c != -1)
+		error("struct has been definition");
+	maxalign = 1;
+	ps = s->next;
+	offset = 0;
     while(token != TK_END){
-        struct_declaration(); /// 原书是 struct_declaration(&maxalign,&offset);
+        struct_declaration(&maxalign,&offset,&ps); /// 原书是 struct_declaration(&maxalign,&offset);
 		get_token();
 	}
     skip(TK_END);
 	get_token();
 	skip(TK_SEMICOLON);
     syntax_state = SNTX_LF_HT;
+	s->c = calc_align(offset,maxalign);	/// 结构体大小
+	s->r = maxalign;	/// 结构体对齐
+}
+int calc_align(int n,int align){
+	return ((n + align - 1) & (~(align - 1)));
 }
 /**
 结构声明
