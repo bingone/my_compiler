@@ -1,1 +1,2 @@
 #define MAXKEY 1024
+#define ALIGN_SET 0x100

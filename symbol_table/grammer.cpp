@@ -205,6 +205,11 @@ void struct_declaration_list(Type *type){
 	s->c = calc_align(offset,maxalign);	/// 结构体大小
 	s->r = maxalign;	/// 结构体对齐
 }
+/**
+功能：计算字节对其位置
+n 未对齐前值
+align 对齐粒度
+*/
 int calc_align(int n,int align){
 	return ((n + align - 1) & (~(align - 1)));
 }
@@ -214,10 +219,27 @@ int calc_align(int n,int align){
     <type_specifier><declarator>{<TK_COMMA><declarator>}
     <TK_SEMICOLON>
 */
-void struct_declaration(){
-    type_specifier();
+void struct_declaration(int * maxalign,int * offset, Symbol **ps){
+	int v,size,align;
+	Symbol **s;
+	Type type1,btype;
+	int force_align;
+    type_specifier(&btype);
     while(1){
-        declarator();
+		v = 0;
+		type1 = btype;
+        declarator(&type1,&v,&force_align);
+		size = type_size(&type1,&align);
+		if(force_align & ALIGN_SET)
+			align = force_align & ~ALIGN_SET;
+		*offset = calc_align(*offset,align);
+		if(align > *maxalign)
+			*maxalign = align;
+		ss = sys_push(v|SC_MEMBER,&type1,0,*offset);
+		*offset +=size;
+		**ps = ss;
+		*ps = &ss->next;
+		
         if(token == TK_SEMICOLON)
             break;
         skip(TK_COMMA);
@@ -243,39 +265,53 @@ void function_calling_convention(int *fc){
 结构成员对齐
 <struct_member_alignment>::=<KW_ALIGN><TK_OPENPA><TK_CINT><TK_CLOSEPA>
 */
-void struct_member_alignment(){
+void struct_member_alignment(int * force_align){
+	int align = 1;
     if(KW_ALIGN == token){
         get_token();
         skip(TK_OPENPA);
-        if(TK_CINT == token)
-            get_token();
+        if(TK_CINT == token){
+			get_token();
+			align = tkvalue;
+		}
+            
         else
             expect("integer constant");
         skip(TK_CLOSEPA);
-    }
+		if(align != 1 && align != 2 && align != 4)
+			align = 1;
+		align |= ALIGN_SET;
+		*force_align = align;
+    }else
+		*force_align = 1;
 }
 /**
 声明符
 <declarator>::={<TK_STAR>}[<function_calling_convention>] [<struct_member_alignment>]<direct_declarator>
 */
-void declarator(){
+void declarator(Type *type,int *v,int *force_align){
     int fc;
-    while(TK_STAR == token)
-        get_token();
+    while(TK_STAR == token){
+        mk_pointer(type);
+		get_token();
+	}
     function_calling_convention(&fc);
-    struct_member_alignment();
-    direct_declarator();
+	if(force_align)
+		struct_member_alignment();
+    direct_declarator(type,v,fc);
 }
 /**
 直接声明符
 <direct_declarator>::=<IDENTIFIER><direct_declarator_postfix>
 */
-void direct_declarator(){
-    if(TK_IDENT <= token)
+void direct_declarator(Type *type,int *v,int func_call){
+    if(TK_IDENT <= token){
         get_token();
+		*v = token;
+	}
     else
         expect("identifier");
-    direct_declarator_postfix();
+    direct_declarator_postfix(type,func_call);
 }
 /**
 直接声明符后缀
@@ -284,19 +320,23 @@ void direct_declarator(){
                             |<TK_OPENPA><parameter_type_list><TK_CLOSEPA>
                             |<TK_OPENPA><TK_CLOSEPA>}
 */
-void direct_declarator_postfix(){
+void direct_declarator_postfix(Type *type,int func_call){
     int n;
+	Symbol *s;
     if(TK_OPENPA == token)
-        parameter_type_list();
+        parameter_type_list(type,func_call);
     else if(TK_OPENBR == token){
         get_token();
+		n = -1;
         if(TK_CINT == token){
             get_token();
             n = tkvalue;
         }
         skip(TK_CLOSEBR);
-        direct_declarator_postfix();
-		get_token();
+        direct_declarator_postfix(type,func_call);
+		s = sym_push(SC_ANOM,type,0,n);
+		type->t = T_ARRAY|T_PTR;
+		get_token();/// TODO
     }
 }
 /**
@@ -305,13 +345,20 @@ void direct_declarator_postfix(){
 <parameter_type_list>::=<type_specifier>{<declarator>}
     {<TK_COMMA><type_specifier>{<declarator>}}<TK_COMMA><TK_ELLIPSIS>
 */
-void parameter_type_list(){
-    int func_call;          /// 原书将这个变量当做参数
+void parameter_type_list(Type *type,int func_call){
+    int n;
+	Symbol **plast,*s,*first;
+	Type pt;
     get_token();
+	first = NULL;
+	plast = &first;
     while(TK_CLOSEPA != token){
-        if(!type_specifier())
+        if(!type_specifier(&pt))
             error("invalid identifier");
-        declarator();
+        declarator(&pt,&n,NULL);
+		s = sym_push(n|SC_PARAMS,&pt,0,0);
+		*plast = s;
+		plast = &s->next;
         if(TK_CLOSEPA == token)
             break;
         skip(TK_COMMA);
@@ -323,7 +370,12 @@ void parameter_type_list(){
     }
     syntax_state = SNTX_DELAY;
     skip(TK_CLOSEPA);
-	get_token();
+	get_token();								/// TODO 
+	/// 此处将函数返回类型存储，然后指向参数，最后将type设为函数类型，引用的相关信息放在ref中
+	s = sym_push(SC_ANOM,type,func_call,0);
+	s->next = first;
+	type->t = T_FUNC;
+	type->ref = s;
     if(TK_BEGIN == token)   /// define function
         syntax_state = SNTX_LF_HT;
     else
@@ -335,14 +387,21 @@ void parameter_type_list(){
 <funcbody>::=<compound_statement>
 */
 void funcbody(){
-    compound_statement();
+	/**放以匿名符号在局部符号表中*/
+	sum_direct_push(&local_sym_stack,SC_ANOM,&int_type,0);
+    compound_statement(NULL,NULL);
+	/**清空局部符号栈*/
+	sym_pop(&local_sym_stack,NULL);
 }
 /**
 初值符
 <initializer>::=<assignment_expreession>
 */
-void initializer(){
-    assignment_expression();
+void initializer(Type *type){
+	if(type->t & T_ARRAY)
+		get_token();
+	else
+		assignment_expression();
 }
 /********************************************************************************/
 /*****************************statement语句**************************************/
@@ -390,7 +449,9 @@ void statement(){
 <compound_statement>::=<TK_BEGIN>{<declaration>}{<statement>}<TK_END>
 
 */
-void compound_statement(){
+void compound_statement(int * bsym,int * csym){
+	Symbol *s;
+	s = (Symbol *)stack_get_top(&local_sym_stack);
     syntax_state = SNTX_LF_HT;
     syntax_level++;     ///复合语句，缩�
 	get_token();
@@ -400,7 +461,7 @@ void compound_statement(){
 	}
     while(TK_END != token)
 		statement();
-	
+	sym_pop(&local_sym_stack,s);
     syntax_state = SNTX_LF_HT;
     get_token();
 }
@@ -609,10 +670,51 @@ void unary_expression(){
 <sizeof_expression>::=<KW_SIZEOF><TK_OPENPA><type_specifier><TK_CLOSEPA>
 */
 void sizeof_expression(){
+	int align,size;
+	Type type;
     get_token();
     skip(TK_OPENPA);
-    type_specifier();
+    type_specifier(&type);
     skip(TK_CLOSEPA);
+	
+	size = type_size(&type,&align);
+	if(size < 0)
+		error("sizeof failed!");
+}
+
+/**
+返回类型长度
+t: 数据类型指针
+a: 对齐值
+*/
+int type_size(Type *t,int *a){
+	Symbol *s;
+	int bt;
+	int PTR_SIZE = 4;	/// 指针长度4字节
+	bt = t->t & T_BTYPE;
+	switch(bt){
+		case T_STRUCT:
+			s = t->ref;
+			*a = s->r;
+			return s->c;
+		case T_PTR:
+			if(t->t & T_ARRAY){
+				s = t->ref;
+				return type_size(*s->type,a) * s->c;
+			}else{
+				*a = PTR_SIZE;
+				return PTR_SIZE;
+			}
+		case T_INT:
+			*a = 4;
+			return 4;
+		case T_SHORT:
+			*a = 2;
+			return 2;
+		default:	/// char void function
+			*a = 1;
+			return 1;
+	}
 }
 /**
 后缀表达式
@@ -650,13 +752,21 @@ void postfix_expression(){
                       |<TK_OPEN{A><expression><TK_CLOSEPA>
 */
 void primary_expression(){
-    int t;
+    int t,addr;
+	Type type;
+	Symbol *s;
     switch(token){
         case TK_CINT:
         case TK_CCHAR:
             get_token();
             break;
         case TK_CSTR:
+			t = T_CHAR;
+			type.t = t;
+			mk_pointer(&type);
+			type.t |= T_ARRAY;
+			var_sym_put(&type,SC_GLOBAL,0,addr);
+			initializer(&type);
             get_token();
             break;
         case TK_OPENPA:
@@ -669,6 +779,13 @@ void primary_expression(){
             get_token();
             if(t < TK_IDENT)
                 expect("identifier");
+			s = sym_search(t);
+			if(!s){
+				if(token != TK_OPENPA)
+					error("'%s' 未声明\n",get_tkstr(t));
+				s = func_sym_push(t,&default_func_type);	///允许函数不声明，直接引用。
+				s->r = SC_GLOBAL|SC_SYM;
+			}
             break;
     }
 }
