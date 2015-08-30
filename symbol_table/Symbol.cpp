@@ -45,14 +45,15 @@ Symbol * sym_push(int v,Type *type,int r,int c){
 将函数符号放入全局符号表中
 */
 Symbol * func_sym_push(int v,Type *type){
-	Symbol *s,*ps;
+	Symbol *s,**ps;
 	s = sym_direct_push(&global_sym_stack,v,type,0);
-	ps = ((TkWord *)tktable.data[v])->sym_identifier;
+	ps = &((TkWord *)tktable.data[v])->sym_identifier;
 	/// 同名符号，函数符号放在最后->->...s
-	while(ps != NULL)
-		ps = ps->prev_tok;
+	while(*ps != NULL)
+		ps = &(*ps)->prev_tok;	/// ps 每次都获取到
+
 	s->prev_tok = NULL;
-	ps = s;
+	*ps = s;
 	return s;
 }
 /**
