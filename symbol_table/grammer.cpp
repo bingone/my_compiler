@@ -39,7 +39,7 @@ storage type:local | global
 */
 void external_declaration(int l){
 	Type btype,type;
-	int v,has_init,r,addr;
+	int v,has_init,r,addr = 0;			/// 书中对addr没有初始化，这里先写0
 	Symbol *sym;
     if(!type_specifier(&btype))
         expect("<Type specifier>");
@@ -764,7 +764,7 @@ void postfix_expression(){
                       |<TK_OPEN{A><expression><TK_CLOSEPA>
 */
 void primary_expression(){
-    int t,addr;
+    int t,addr = 0;			/// 书中对addr没有初始化，这里先写0
 	Type type;
 	Symbol *s;
     switch(token){
@@ -818,4 +818,10 @@ void argument_expression_list(){
     }
     skip(TK_CLOSEPA);
 	get_token();
+}
+void mk_pointer(Type * type){
+	Symbol * s;
+	s = sym_push(SC_ANOM,type,0,0xffffffff);
+	type->t = SC_ANOM;
+	type->ref = s;
 }

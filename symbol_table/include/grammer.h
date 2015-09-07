@@ -39,6 +39,7 @@ int type_size(Type *t,int *a);
 void postfix_expression();
 void primary_expression();
 void argument_expression_list();
+void mk_pointer(Type * type);
 
 extern int token;
 extern int tkvalue;
