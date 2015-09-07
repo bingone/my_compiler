@@ -52,9 +52,12 @@ Symbol * sym_push(int v,Type *type,int r,int c);
 Symbol * func_sym_push(int v,Type *type);
 Symbol * var_sym_put(Type *type,int r,int v,int addr);
 Symbol * sec_sym_put(char *sec,int c);
-void sym_pop(Stack *ptop,Symbol *b);
+void     sym_pop(Stack *ptop,Symbol *b);
 Symbol *struct_search(int v);
 Symbol *sym_search(int v);
 
 extern Stack global_sym_stack;		/// 全局符号表
 extern Stack local_sym_stack;		/// 局部符号表
+extern Type char_pointer_type;	/// 字符串指针
+extern Type int_type;			/// int 类型
+extern Type default_func_type;	/// 缺省函数类型

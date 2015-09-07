@@ -1,7 +1,9 @@
-#include "include/Stack.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include "include/Stack.h"
 // test code
 // void main(){
 	// Stack stack;

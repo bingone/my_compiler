@@ -120,6 +120,7 @@ void sym_pop(Stack *ptop,Symbol *b){
 				ps = &ts->sym_struct;
 			else
 				ps = &ts->sym_identifier;
+			*ps = s->prev_tok;
 		}
 		stack_pop(ptop);
 		s = (Symbol *)stack_get_top(ptop);

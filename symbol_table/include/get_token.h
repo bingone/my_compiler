@@ -1,3 +1,4 @@
+char * get_tkstr(int v);
 void getch();
 void skip_white_space();
 void parse_comment();

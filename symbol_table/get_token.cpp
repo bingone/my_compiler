@@ -12,6 +12,11 @@
 #include "include/indentation.h"
 #include "include/syntax_state.h"
 /** read char from file */
+char * get_tkstr(int v){
+	if(v > tktable.count)
+		return NULL;
+	return ((TkWord *)tktable.data[v])->spelling;
+}
 void getch(){
     ch = getc(fin);
 }

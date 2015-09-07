@@ -1,19 +1,19 @@
 
 void translation_unit();
 void external_declaration(int l);
-int type_specifier();
+int type_specifier(Type *type);
 void struct_specifier();
-void struct_declaration_list();
+void struct_declaration_list(Type *type);
 int calc_align(int n,int align);
-void struct_declaration();
+void struct_declaration(int * maxalign,int * offset, Symbol ***ps);
 void function_calling_convention(int *fc);
 void struct_member_alignment();
-void declarator();
-void direct_declarator();
-void direct_declarator_postfix();
-void parameter_type_list();
-void funcbody();
-void initializer();
+void declarator(Type *type,int *v,int *force_align);
+void direct_declarator(Type *type,int *v,int func_call);
+void direct_declarator_postfix(Type *type,int func_call);
+void parameter_type_list(Type *type,int func_call);
+void funcbody(Symbol * sym);
+void initializer(Type *type);
 
 void statement(int *bsym,int *csym);
 void compound_statement();
@@ -49,3 +49,4 @@ extern void syntax_indent();
 extern void expect(char *msg);
 extern void get_token();
 extern void skip(int c);
+extern char * get_tkstr(int v);

@@ -1,7 +1,19 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "include/definemaro.h"
+#include "include/DynString.h"
+#include "include/DynArray.h"
+#include "include/TkWord.h"
+
+#include "include/exception_handler.h"
+#include "include/Stack.h"
+#include "include/Symbol.h"
 #include "include/syntax_state.h"
+
 #include "include/grammer.h"
 #include "include/TokenCode.h"
-#include "include/external_declaration.h"
+
 /***********************************************************************/
 
 
@@ -27,7 +39,7 @@ storage type:local | global
 */
 void external_declaration(int l){
 	Type btype,type;
-	int v,has_init,addr;
+	int v,has_init,r,addr;
 	Symbol *sym;
     if(!type_specifier(&btype))
         expect("<Type specifier>");
@@ -44,9 +56,9 @@ void external_declaration(int l){
 			if((type.t & T_BTYPE) != T_FUNC)
 				error("<function define>");
 			sym = sym_search(v);
-			if(sym){								/// 函数之前声明过，现在给出函数定义
-				if((sym->type.t & T_BTYPE) !- T_FUNC)
-					error("'%s'redefine",get_tkstr(v));
+			if(sym){								// 函数之前声明过，现在给出函数定义
+				if((sym->type.t & T_BTYPE) != T_FUNC)
+					error("'%s' 重定义\n",get_tkstr(v));
 				sym->type = type;
 			}else
 				sym = func_sym_push(v,&type);
@@ -192,14 +204,14 @@ void struct_declaration_list(Type *type){
 	if(s->c != -1)
 		error("struct has been definition");
 	maxalign = 1;
-	ps = s->next;
+	ps = &s->next;
 	offset = 0;
     while(token != TK_END){
         struct_declaration(&maxalign,&offset,&ps); /// 原书是 struct_declaration(&maxalign,&offset);
-		get_token();
+		get_token();		/// 这句可能要注释掉
 	}
     skip(TK_END);
-	get_token();
+	get_token();			/// 这句可能要注释掉
 	skip(TK_SEMICOLON);
     syntax_state = SNTX_LF_HT;
 	s->c = calc_align(offset,maxalign);	/// 结构体大小
@@ -219,9 +231,9 @@ int calc_align(int n,int align){
     <type_specifier><declarator>{<TK_COMMA><declarator>}
     <TK_SEMICOLON>
 */
-void struct_declaration(int * maxalign,int * offset, Symbol **ps){
+void struct_declaration(int * maxalign,int * offset, Symbol ***ps){
 	int v,size,align;
-	Symbol **s;
+	Symbol *ss;
 	Type type1,btype;
 	int force_align;
     type_specifier(&btype);
@@ -235,7 +247,7 @@ void struct_declaration(int * maxalign,int * offset, Symbol **ps){
 		*offset = calc_align(*offset,align);
 		if(align > *maxalign)
 			*maxalign = align;
-		ss = sys_push(v|SC_MEMBER,&type1,0,*offset);
+		ss = sym_push(v|SC_MEMBER,&type1,0,*offset);
 		*offset +=size;
 		**ps = ss;
 		*ps = &ss->next;
@@ -386,7 +398,7 @@ void parameter_type_list(Type *type,int func_call){
 函数体
 <funcbody>::=<compound_statement>
 */
-void funcbody(){
+void funcbody(Symbol * sym){
 	/**放以匿名符号在局部符号表中*/
 	sum_direct_push(&local_sym_stack,SC_ANOM,&int_type,0);
     compound_statement(NULL,NULL);
@@ -700,7 +712,7 @@ int type_size(Type *t,int *a){
 		case T_PTR:
 			if(t->t & T_ARRAY){
 				s = t->ref;
-				return type_size(*s->type,a) * s->c;
+				return type_size(&s->type,a) * s->c;
 			}else{
 				*a = PTR_SIZE;
 				return PTR_SIZE;
