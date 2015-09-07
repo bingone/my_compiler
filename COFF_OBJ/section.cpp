@@ -1,4 +1,19 @@
+#include "include/Section.h"
+#include <stdio.h>
+#include <string.h>
+
 ///生成节表
+///COFF初始化用到的全局变量
+DynArry sections;	/// 节数组
+Section *sec_text,		/// 代码节
+		*sec_data,		/// 数据节
+		*sec_bss,		/// 未初始化数据节
+		*sec_idata,		/// 导入表节
+		*sec_rdata,		/// 只读数据节
+		*sec_rel,		/// 重定位信息节
+		*sec_symtab,	/// 符号表节
+		*sec_dynsymtab;	/// 链接库符号节
+int nsec_image;			/// 映像文件节个数
 /**
 新建节
 name: 节名称

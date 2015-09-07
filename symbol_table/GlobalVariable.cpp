@@ -20,5 +20,8 @@ FILE * fin;                         ///file
 int syntax_state;    ///语法状态
 int syntax_level;   /// 缩进级别
 
+
+
+/**符号表*/
 Stack global_sym_stack;		/// 全局符号表
 Stack local_sum_stack;		/// 局部符号表

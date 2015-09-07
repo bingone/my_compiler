@@ -1,3 +1,15 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "include/definemaro.h"
+#include "include/DynString.h"
+#include "include/DynArray.h"
+#include "include/TkWord.h"
+
+#include "include/exception_handler.h"
+
+
+#include "include/Stack.h"
 #include "include/Symbol.h"
 
 /**
@@ -95,7 +107,7 @@ Symbol * sec_sym_put(char *sec,int c){
 弹栈直到栈顶符号为'b'
 */
 void sym_pop(Stack *ptop,Symbol *b){
-	Symbol *s,*ps;
+	Symbol *s,**ps;
 	TkWord *ts;
 	int v;
 	s = (Symbol *)stack_get_top(ptop);

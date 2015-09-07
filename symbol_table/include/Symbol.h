@@ -10,6 +10,10 @@ enum e_TypeCode{
 	T_BTYPE	= 0x000f, /// 基本类型掩码
 	T_ARRAY = 0x0010, /// 数组
 };
+typedef struct Type{
+	int t;				///数据类型
+	struct Symbol *ref;	///引用符号
+}Type;
 /**
 与数据类型相关的全局变量
 Type char_pointer_type;	/// 字符串指针
@@ -41,13 +45,16 @@ typedef struct Symbol{
 	struct Symbol *next;	///关联的其他符号
 	struct Symbol *prev_tok;///指向前一定义的同名符号
 }Symbol;
-typedef struct Type{
-	int t;				///数据类型
-	struct Symbol *ref;	///引用符号
-}Type;
+
 
 Symbol * sym_direct_push(Stack *ss,int v,Type *type,int c);
 Symbol * sym_push(int v,Type *type,int r,int c);
 Symbol * func_sym_push(int v,Type *type);
 Symbol * var_sym_put(Type *type,int r,int v,int addr);
 Symbol * sec_sym_put(char *sec,int c);
+void sym_pop(Stack *ptop,Symbol *b);
+Symbol *struct_search(int v);
+Symbol *sym_search(int v);
+
+extern Stack global_sym_stack;		/// 全局符号表
+extern Stack local_sym_stack;		/// 局部符号表
