@@ -1,0 +1,3 @@
+#define MAXKEY 1024
+#define ALIGN_SET 0x100
+#define OPSTACK_SIZE 256
