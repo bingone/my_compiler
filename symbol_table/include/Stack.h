@@ -9,4 +9,6 @@ void stack_pop(Stack *stack);
 void *stack_get_top(Stack *stack);
 int stack_is_empty(Stack *stack);
 void stack_destory(Stack *stack);
-void error(char * fmt,...);
+
+
+extern void error(char * fmt,...);

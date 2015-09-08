@@ -25,7 +25,7 @@ int syntax_level;   /// 缩进级别
 
 /**符号表*/
 Stack global_sym_stack;		/// 全局符号表
-Stack local_sum_stack;		/// 局部符号表
+Stack local_sym_stack;		/// 局部符号表
 
 Type char_pointer_type;	/// 字符串指针
 Type int_type;			/// int 类型
