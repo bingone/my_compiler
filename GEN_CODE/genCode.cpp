@@ -244,7 +244,7 @@ void store0_1(){
 	int r,t;
 	r = load_1(REG_ANY,optop);
 	/// 左值溢出到栈中，必须加载到寄存器中
-	if((optop[-1].r & SC_VALMASK) == SC_LOCAL){
+	if((optop[-1].r & SC_VALMASK) == SC_LLOCAL){
 		Operand opd;
 		t = allocate_reg(REG_ANY);
 		operand_assign(&opd,T_INT,SC_LOCAL | SC_LVAL, optop[-1].value);
@@ -410,25 +410,173 @@ void gen_opi2(int opc,int op){
 }
 /*****************************************************************************/
 ///生成控制转移指令
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+jump code
+高地址向低地址，跳转地址待定
+t 前一跳转指令地址
+*/
+int gen_jmpforword(int t){
+	/// jmp--jump
+	///E9 cd jmp rel32Jump new,relative,displacement relative to next instruction
+	gen_opcode1(0xe9);
+	return makelist(t);
+}
+/**
+生成向低地址跳转指令，跳转地址确定
+a 跳转到的目标地址
+*/
+void jmpbackword(int a){
+	int r;
+	r = a - ind - 2;
+	if(r==(char)r){
+	/// EB cb rel8 Jump short,relative,displacement relative to next instruction
+		gen_opcode1(0xe9);
+		gen_dword(a - ind - 4);
+	}
+}
+/**
+条件跳转指令
+返回值 新跳转指令地址
+*/
+int gen_jcc(int t){
+	int v;
+	int inv = 1;
+	v = optop->r & SC_VALMASK;
+	if(v == SC_CMP){
+		/// jcc jump if condition is met
+		/// 0F 8F cw/cd JG rel16/32 jump new if greater(zf=0 and sf=of)
+		gen_opcode2(0x0f,optop->value ^ inv);
+		t = makelist(t);
+	}else{
+		if(optop->r & (SC_VALMASK | SC_LVAL | SC_SYM) == SC_GLOBAL)
+			t = gen_jmpforword(t);
+		else{
+			v = load_1(REG_ANY,optop);
+			/// test logical compare
+			/// 85 /r test r/m32,r32 and r32 with r/m32,set sf,zf,pf
+			gen_opcode1(0x85);
+			gen_modrm(ADDR_REG,v,v,NULL,0);
+			/// jcc
+			gen_opcode2(0x0f,0x85 ^ inv);
+			t = makelist(t);
+		}
+	}
+	operand_pop();
+	return t;
+}
+/*****************************************************************************/
+/// 生成函数调用
+/**
+生成函数调用代码，参数入栈，然后生成call
+nb_args 参数个数
+*/
+void gen_invoke(int nb_args){
+	int size,r,args_size,i,func_call;
+	args_size = 0;
+	for(i = 0;i < nb_args;i++){
+		r = load_1(REG_ANY,optop);
+		size = 4;
+		/// push push word or doubleword into stack
+		/// 50 + rd push r32 push r32
+		gen_opcode1(0x50 + r);	/// push r
+		args_size += size;
+		operand_pop();
+	}
+	spill_regs();
+	func_call = optop->type.ref->r; 	/// 调用方式
+	gen_call();
+	if(args_size && func_call != KW_STDCALL)
+		gen_addsp(args_size);
+	operand_pop();
+}
+/**
+生成函数调用指令
+nb_args 参数个数
+*/
+void gen_call(){
+	int r;
+	if((optop->r & (SC_VALMASK | SC_LVAL) == SC_GLOBAL){
+		/// 重定位信息
+		coffreloc_add(sec_text,optop->sym,ind + 1,IMAGE_REL_I386_REL32);
+		/// call call prcedure E8 cd
+		/// call rel32 call near/relative,displacement relative to next instruction
+		gen_opcode1(0xe8);
+		gen_dword(optop->value - 4);
+	}else{
+		/// FF /2 call r/m32 call near,absolute indirect address given in r/m32
+		r = load_1(REG_ANY,optop);
+		gen_opcode1(0xff);
+		gen_opcode1(0xd0 + r);
+	}
+}
+/**
+寄存器分配
+若所需寄存器被占用，先将其内容溢出到栈中
+rc 寄存器类型
+*/
+int allocate_reg(int rc){
+	int r;
+	Operand * p;
+	int used;
+	// find empty register
+	for(r = 0;r <= REG_EBX;r++){
+		if(rc & REG_ANY || r==rc){
+			used = 0;
+			for(p = opstack;p <= optop;p++){
+				if((p->r & SC_VALMASK) == r)
+					used = 1;
+			}
+			if(used == 0) return r;
+		}
+	}
+	/// 如果没有空寄存器，从操作数栈底开始查找到第一个占用的寄存器溢出到栈中
+	for(p = opstack;p <= optop;p++){
+		r = p->r & SC_VALMASK;
+		if(r < SC_GLOBAL && (rc & REG_ANY || r==rc)){
+			spill_reg(r);
+			return r;
+		}
+	}
+	return -1;
+}
+/**
+寄存器溢出
+将寄存器'r'溢出到内存栈中，标记释放'r'寄存器的操作数为局部变量
+r  寄存器编码
+*/
+void spill_reg(int r){
+	int size,align;
+	Operand * p,opd;
+	Type * type;
+	for(p = opstack;p <= optop;p++){
+		if((p->r & SC_VALMASK) == r){
+			r = p->r & SC_VALMASK;
+			type = &p->type;
+			if(p->r & SC_LVAL)
+				type = &int_type;
+			size = type_size(type,&align);
+			loc = calc_align(loc - size,align);
+			operand_assign(&opd,type->t,SC_LOCAL | SC_LVAL,loc);
+			store(r,&opd);
+			if(p->r & SC_LVAL)
+				p->r = (p->r & ~(SC_VALMASK) | SC_LLOCAL);
+			else
+				p->r = SC_LOCAL | SC_LVAL;
+			p->value = loc;
+			break;
+		}
+	}
+}
+/**
+将占用的寄存器全部溢出到栈中
+*/
+void spill_regs(){
+	int r;
+	Operand * p;
+	for(p = opstack;p <= optop;p++){
+		r = p->r & SC_VALMASK;
+		if(r < SC_GLOBAL)
+			spill_reg(r);
+	}
+}
 

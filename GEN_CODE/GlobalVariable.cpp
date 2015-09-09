@@ -35,5 +35,11 @@ Type int_type;			/// int 类型
 Type default_func_type;	/// 缺省函数类型
 
 /**代码生成*/
-Operator opstack[OPSTACK_SIZE];
-OPerator * optop;
+Operand opstack[OPSTACK_SIZE];	/// 操作数栈
+Operand * optop;				/// 操作数栈顶
+int rsym;						/// 记录return指令位置
+int ind = 0;					/// 指令在代码节的位置
+int loc;						/// 局部变量在栈中的位置
+int func_begin_ind;				/// 函数开始指令
+int func_ret_sub;				/// 函数返回释放栈空间
+Symbol * sym_sec_rdata;			/// 只读节符号
